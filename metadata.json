@@ -1,0 +1,6 @@
+{
+  "name": "DOSMaker 320 - MS-DOS Game Studio",
+  "description": "Retro MS-DOS game maker with 8-bit 320x200 Mode 13h VGA graphics, Sound Blaster 16 & OPL2 FM synth audio emulation, sprite & map editors, and authentic MS-DOS MZ executable (.EXE) builder.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

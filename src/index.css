@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --dos-black: #000000;
+    --dos-blue: #0000aa;
+    --dos-green: #00aa00;
+    --dos-cyan: #00aaaa;
+    --dos-red: #aa0000;
+    --dos-magenta: #aa00aa;
+    --dos-brown: #aa5500;
+    --dos-lightgray: #aaaaaa;
+    --dos-darkgray: #555555;
+    --dos-brightblue: #5555ff;
+    --dos-brightgreen: #55ff55;
+    --dos-brightcyan: #55ffff;
+    --dos-brightred: #ff5555;
+    --dos-brightmagenta: #ff55ff;
+    --dos-yellow: #ffff55;
+    --dos-white: #ffffff;
+  }
+
+  body {
+    font-family: 'Share Tech Mono', monospace;
+    background-color: #0b0e14;
+    color: #aaaaaa;
+  }
+}
+
+.font-dos {
+  font-family: 'VT323', monospace;
+}
+
+.font-pixel {
+  font-family: 'Press Start 2P', cursive, monospace;
+}
+
+.font-code {
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* Crisp pixel art rendering */
+.pixelated {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* CRT Scanline & Glow Overlay */
+.crt-overlay {
+  position: relative;
+}
+
+.crt-overlay::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+  z-index: 20;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+.crt-glow {
+  text-shadow: 0 0 5px rgba(85, 255, 85, 0.6);
+}
+
+.crt-amber-glow {
+  text-shadow: 0 0 5px rgba(255, 176, 0, 0.6);
+}
+
+/* Retro DOS Box borders */
+.dos-box {
+  border: 2px solid #555555;
+  box-shadow: inset 2px 2px 0px #aaaaaa, inset -2px -2px 0px #000000;
+}
+
+.dos-inset {
+  border: 2px solid #000000;
+  box-shadow: inset 1px 1px 0px #000000, inset -1px -1px 0px #555555;
+}
+
+.dos-button {
+  background-color: #aaaaaa;
+  color: #000000;
+  box-shadow: 2px 2px 0px #000000, inset 1px 1px 0px #ffffff;
+}
+
+.dos-button:active {
+  box-shadow: inset 2px 2px 0px #000000;
+}
+
+/* Custom retro scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000044;
+  border-left: 1px solid #5555ff;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #aaaaaa;
+  border: 1px solid #ffffff;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ffffff;
+}
+
+@keyframes dosBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.dos-cursor {
+  animation: dosBlink 1s infinite;
+}
