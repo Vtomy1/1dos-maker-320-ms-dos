@@ -112,6 +112,27 @@ export interface MZHeader {
   e_res: number[]; // Reserved words
 }
 
+export interface CustomMelodyTrack {
+  id: string;
+  name: string;
+  bpm: number; // 60 - 240
+  stepsCount: number; // 16 or 32
+  channel1: {
+    name: string;
+    instrument: 'square' | 'sine' | 'sawtooth' | 'brass';
+    volume: number; // 0 to 1
+    octave: number;
+    steps: (string | null)[]; // array of note names like 'C4', 'E4' or null
+  };
+  channel2: {
+    name: string;
+    instrument: 'synth_bass' | 'opl_triangle' | 'pulse' | 'organ';
+    volume: number;
+    octave: number;
+    steps: (string | null)[];
+  };
+}
+
 export interface GameProject {
   title: string;
   author: string;
@@ -134,6 +155,7 @@ export interface GameProject {
     sfxWin: string;
     bgmId: string;
   };
+  customMelody?: CustomMelodyTrack;
   palette: VGAColor[];
   sprites: SpriteAsset[];
   tiles: TileAsset[];

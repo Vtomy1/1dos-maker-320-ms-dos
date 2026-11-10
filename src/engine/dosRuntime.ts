@@ -136,7 +136,9 @@ export class DosRuntime {
       soundBlaster.stopBgm();
     } else {
       this.gameState = 'playing';
-      if (this.project.soundSettings.bgmId) {
+      if (this.project.soundSettings.bgmId === 'custom' && this.project.customMelody) {
+        soundBlaster.playCustomMelody(this.project.customMelody);
+      } else if (this.project.soundSettings.bgmId) {
         soundBlaster.playBgm(this.project.soundSettings.bgmId as 'keen' | 'dungeon' | 'cyber');
       }
     }
@@ -191,7 +193,9 @@ export class DosRuntime {
       this.bootTimer--;
       if (this.bootTimer <= 0) {
         this.gameState = 'playing';
-        if (this.project.soundSettings.bgmId) {
+        if (this.project.soundSettings.bgmId === 'custom' && this.project.customMelody) {
+          soundBlaster.playCustomMelody(this.project.customMelody);
+        } else if (this.project.soundSettings.bgmId) {
           soundBlaster.playBgm(this.project.soundSettings.bgmId as 'keen' | 'dungeon' | 'cyber');
         }
         if (this.onStateChange) this.onStateChange();

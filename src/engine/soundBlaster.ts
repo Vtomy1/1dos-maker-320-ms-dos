@@ -1,4 +1,32 @@
-import { SoundPreset, SoundBlasterConfig } from '../types/dos';
+import { SoundPreset, SoundBlasterConfig, CustomMelodyTrack } from '../types/dos';
+
+export const NOTE_FREQUENCIES: Record<string, number> = {
+  'C2': 65.41, 'C#2': 69.30, 'D2': 73.42, 'D#2': 77.78, 'E2': 82.41, 'F2': 87.31, 'F#2': 92.50, 'G2': 98.00, 'G#2': 103.83, 'A2': 110.00, 'A#2': 116.54, 'B2': 123.47,
+  'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81, 'F3': 174.61, 'F#3': 185.00, 'G3': 196.00, 'G#3': 207.65, 'A3': 220.00, 'A#3': 233.08, 'B3': 246.94,
+  'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.00, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+  'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.00, 'A#5': 932.33, 'B5': 987.77,
+};
+
+export const DEFAULT_CUSTOM_MELODY: CustomMelodyTrack = {
+  id: 'melody_venture',
+  name: 'Commander 16-Step',
+  bpm: 130,
+  stepsCount: 16,
+  channel1: {
+    name: 'Lead Melody (Ch 1)',
+    instrument: 'square',
+    volume: 0.8,
+    octave: 4,
+    steps: ['C4', null, 'E4', null, 'G4', 'C5', null, 'G4', 'F4', null, 'A4', null, 'G4', null, 'D4', null],
+  },
+  channel2: {
+    name: 'OPL2 Bass (Ch 2)',
+    instrument: 'synth_bass',
+    volume: 0.9,
+    octave: 3,
+    steps: ['C3', 'C3', null, 'C3', 'E3', null, 'E3', null, 'F3', 'F3', null, 'F3', 'G3', null, 'G3', null],
+  },
+};
 
 /**
  * Sound Blaster 16 & OPL2 (Yamaha YM3812) FM Synth Audio Engine
@@ -223,9 +251,14 @@ class SoundBlasterEngine {
 
   /**
    * Sound Blaster OPL2 Background Music Player
-   * Plays iconic Apogee/Id Software style DOS chip music sequences
+   * Plays iconic Apogee/Id Software style DOS chip music sequences or custom 2-channel melody
    */
-  public playBgm(theme: 'keen' | 'dungeon' | 'cyber') {
+  public playBgm(theme: 'keen' | 'dungeon' | 'cyber' | 'custom', customTrack?: CustomMelodyTrack, onStepChange?: (step: number) => void) {
+    if (theme === 'custom' && customTrack) {
+      this.playCustomMelody(customTrack, onStepChange);
+      return;
+    }
+
     this.stopBgm();
     this.init();
     this.bgmPlaying = true;
@@ -302,6 +335,126 @@ class SoundBlasterEngine {
     };
 
     playNext();
+  }
+
+  /**
+   * Plays a 2-channel OPL2 custom melody on a loop
+   */
+  public playCustomMelody(track: CustomMelodyTrack, onStepChange?: (step: number) => void) {
+    this.stopBgm();
+    this.init();
+    this.bgmPlaying = true;
+    this.currentBgmNoteIndex = 0;
+
+    const bpm = track.bpm || 120;
+    // 16th note timing: 60 / BPM / 4 seconds per step
+    const stepDuration = (60 / bpm) / 4;
+
+    const playStep = () => {
+      if (!this.bgmPlaying) return;
+      const stepIdx = this.currentBgmNoteIndex % track.stepsCount;
+      this.currentBgmNoteIndex++;
+
+      if (onStepChange) {
+        onStepChange(stepIdx);
+      }
+
+      // Channel 1: Lead Melody
+      const ch1Note = track.channel1.steps[stepIdx];
+      if (ch1Note && NOTE_FREQUENCIES[ch1Note]) {
+        const freq = NOTE_FREQUENCIES[ch1Note];
+        const carrierType = track.channel1.instrument === 'brass' ? 'sawtooth' : track.channel1.instrument;
+        this.playOpl2FM({
+          id: 'ch1-note',
+          name: 'Ch1 Lead Note',
+          type: 'music',
+          category: 'theme',
+          synthType: 'opl2_fm',
+          carrierWave: carrierType,
+          modulatorWave: 'sine',
+          carrierFreq: freq,
+          modulatorFreq: freq * 2.0,
+          modulationIndex: track.channel1.instrument === 'brass' ? 2.5 : 1.4,
+          attack: 0.015,
+          decay: 0.1,
+          sustain: 0.3 * (track.channel1.volume ?? 1),
+          release: 0.05,
+          duration: stepDuration * 0.85,
+        }, freq);
+      }
+
+      // Channel 2: Bass / Arpeggio
+      const ch2Note = track.channel2.steps[stepIdx];
+      if (ch2Note && NOTE_FREQUENCIES[ch2Note]) {
+        const freq = NOTE_FREQUENCIES[ch2Note];
+        const carrierType = track.channel2.instrument === 'synth_bass' ? 'triangle' :
+                            track.channel2.instrument === 'pulse' ? 'square' :
+                            track.channel2.instrument === 'organ' ? 'sine' : 'triangle';
+        this.playOpl2FM({
+          id: 'ch2-note',
+          name: 'Ch2 Bass Note',
+          type: 'music',
+          category: 'theme',
+          synthType: 'opl2_fm',
+          carrierWave: carrierType,
+          modulatorWave: 'square',
+          carrierFreq: freq,
+          modulatorFreq: freq * 1.5,
+          modulationIndex: 1.8,
+          attack: 0.01,
+          decay: 0.15,
+          sustain: 0.4 * (track.channel2.volume ?? 1),
+          release: 0.08,
+          duration: stepDuration * 0.9,
+        }, freq);
+      }
+
+      this.bgmTimeout = window.setTimeout(playStep, stepDuration * 1000);
+    };
+
+    playStep();
+  }
+
+  public playNotePreview(note: string, instrument: 'lead' | 'bass' = 'lead') {
+    this.init();
+    const freq = NOTE_FREQUENCIES[note] || 440;
+    if (instrument === 'bass') {
+      this.playOpl2FM({
+        id: 'preview-bass',
+        name: 'Bass Preview',
+        type: 'music',
+        category: 'theme',
+        synthType: 'opl2_fm',
+        carrierWave: 'triangle',
+        modulatorWave: 'square',
+        carrierFreq: freq,
+        modulatorFreq: freq * 1.5,
+        modulationIndex: 1.8,
+        attack: 0.01,
+        decay: 0.15,
+        sustain: 0.4,
+        release: 0.08,
+        duration: 0.2,
+      }, freq);
+    } else {
+      this.playOpl2FM({
+        id: 'preview-lead',
+        name: 'Lead Preview',
+        type: 'music',
+        category: 'theme',
+        synthType: 'opl2_fm',
+        carrierWave: 'square',
+        modulatorWave: 'sine',
+        carrierFreq: freq,
+        modulatorFreq: freq * 2,
+        modulationIndex: 1.4,
+        attack: 0.015,
+        decay: 0.1,
+        sustain: 0.3,
+        release: 0.05,
+        duration: 0.2,
+      }, freq);
+    }
   }
 
   public stopBgm() {

@@ -10,7 +10,7 @@ interface SoundBlasterPanelProps {
 
 export const SoundBlasterPanel: React.FC<SoundBlasterPanelProps> = ({ project, onUpdateProject }) => {
   const [selectedPreset, setSelectedPreset] = useState<SoundPreset>(DEFAULT_SOUND_PRESETS[0]);
-  const [activeTheme, setActiveTheme] = useState<'keen' | 'dungeon' | 'cyber'>('keen');
+  const [activeTheme, setActiveTheme] = useState<'keen' | 'dungeon' | 'cyber' | 'custom'>('keen');
   const [isBgmPlaying, setIsBgmPlaying] = useState(soundBlaster.isBgmActive());
 
   const sbConfig = project.sbConfig;
@@ -31,13 +31,17 @@ export const SoundBlasterPanel: React.FC<SoundBlasterPanelProps> = ({ project, o
     }
   };
 
-  const handleToggleBgm = (theme: 'keen' | 'dungeon' | 'cyber') => {
+  const handleToggleBgm = (theme: 'keen' | 'dungeon' | 'cyber' | 'custom') => {
     if (isBgmPlaying && activeTheme === theme) {
       soundBlaster.stopBgm();
       setIsBgmPlaying(false);
     } else {
       setActiveTheme(theme);
-      soundBlaster.playBgm(theme);
+      if (theme === 'custom' && project.customMelody) {
+        soundBlaster.playCustomMelody(project.customMelody);
+      } else {
+        soundBlaster.playBgm(theme as 'keen' | 'dungeon' | 'cyber');
+      }
       setIsBgmPlaying(true);
       onUpdateProject({
         ...project,
@@ -476,6 +480,38 @@ export const SoundBlasterPanel: React.FC<SoundBlasterPanelProps> = ({ project, o
                   )}
                 </button>
               </div>
+
+              {project.customMelody && (
+                <div className="bg-[#000033] p-2.5 border border-[#5555ff]">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-yellow-300">{project.customMelody.name}</span>
+                    <span className="text-[9px] bg-green-900 text-green-300 px-1 py-0.5">Custom Sequencer</span>
+                  </div>
+                  <p className="text-[10px] text-[#aaaaaa] mb-2">
+                    {project.customMelody.bpm} BPM &bull; 2-Channel OPL2 Melody ({project.customMelody.stepsCount} steps)
+                  </p>
+                  <button
+                    onClick={() => handleToggleBgm('custom')}
+                    className={`w-full py-1.5 font-mono text-center border font-bold flex items-center justify-center space-x-1 ${
+                      isBgmPlaying && activeTheme === 'custom'
+                        ? 'bg-[#ff5555] text-white border-red-400'
+                        : 'bg-[#aa5500] text-white border-yellow-400 hover:bg-[#ff5555]'
+                    }`}
+                  >
+                    {isBgmPlaying && activeTheme === 'custom' ? (
+                      <>
+                        <Square className="w-3.5 h-3.5 fill-current" />
+                        <span>STOP BGM</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>PLAY CUSTOM MELODY</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

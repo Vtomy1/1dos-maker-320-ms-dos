@@ -1,12 +1,12 @@
 import React from 'react';
 import { GameProject } from '../types/dos';
-import { Volume2, VolumeX, Play, Edit3, Monitor, Download, Music, Cpu, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Play, Edit3, Monitor, Download, Music, Cpu, Sparkles, Palette } from 'lucide-react';
 import { soundBlaster } from '../engine/soundBlaster';
 
 interface DosHeaderProps {
   project: GameProject;
-  activeTab: 'play' | 'map' | 'sprite' | 'sound' | 'exe' | 'code';
-  setActiveTab: (tab: 'play' | 'map' | 'sprite' | 'sound' | 'exe' | 'code') => void;
+  activeTab: 'play' | 'map' | 'sprite' | 'palette' | 'music' | 'sound' | 'exe' | 'code';
+  setActiveTab: (tab: 'play' | 'map' | 'sprite' | 'palette' | 'music' | 'sound' | 'exe' | 'code') => void;
   crtEffect: boolean;
   setCrtEffect: (val: boolean) => void;
   onSelectTemplate: (template: 'keen' | 'dungeon' | 'space') => void;
@@ -122,6 +122,30 @@ export const DosHeader: React.FC<DosHeaderProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('palette')}
+            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+              activeTab === 'palette'
+                ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
+                : 'text-[#ffffff] hover:bg-[#000088]'
+            }`}
+          >
+            <Palette className="w-3.5 h-3.5 text-yellow-300" />
+            <span>PALETTE (256c)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('music')}
+            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+              activeTab === 'music'
+                ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
+                : 'text-[#ffffff] hover:bg-[#000088]'
+            }`}
+          >
+            <Music className="w-3.5 h-3.5 text-cyan-300" />
+            <span>MUSIC SEQUENCER</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('sound')}
             className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
               activeTab === 'sound'
@@ -129,7 +153,7 @@ export const DosHeader: React.FC<DosHeaderProps> = ({
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
-            <Music className="w-3.5 h-3.5 text-yellow-300" />
+            <Volume2 className="w-3.5 h-3.5 text-yellow-300" />
             <span>SOUND BLASTER 16</span>
           </button>
 

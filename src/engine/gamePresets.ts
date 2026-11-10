@@ -1,6 +1,6 @@
 import { GameProject, SpriteAsset, TileAsset, GameMap } from '../types/dos';
 import { generateDefaultVgaPalette } from './vgaPalette';
-import { DEFAULT_SB_CONFIG } from './soundBlaster';
+import { DEFAULT_SB_CONFIG, DEFAULT_CUSTOM_MELODY } from './soundBlaster';
 
 // Helper to create 16x16 pixel array from strings
 function parse16x16(art: string[]): number[] {
@@ -491,6 +491,7 @@ export function createKeenProject(): GameProject {
       sfxWin: 'sb_powerup',
       bgmId: 'keen',
     },
+    customMelody: JSON.parse(JSON.stringify(DEFAULT_CUSTOM_MELODY)),
     palette: generateDefaultVgaPalette(),
     sprites: [KEEN_PLAYER_SPRITE, KEEN_ENEMY_SLUG, KEEN_GEM_SPRITE, KEEN_DOOR_SPRITE],
     tiles: DEFAULT_TILES,
