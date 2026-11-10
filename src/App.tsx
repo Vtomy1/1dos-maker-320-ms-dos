@@ -15,10 +15,11 @@ import { SoundBlasterPanel } from './components/SoundBlasterPanel';
 import { ExeHeaderInspector } from './components/ExeHeaderInspector';
 import { PaletteEditor } from './components/PaletteEditor';
 import { MusicSequencer } from './components/MusicSequencer';
+import { ResourceCompiler } from './components/ResourceCompiler';
 
 export default function App() {
   const [project, setProject] = useState<GameProject>(() => createKeenProject());
-  const [activeTab, setActiveTab] = useState<'play' | 'map' | 'sprite' | 'palette' | 'music' | 'sound' | 'exe' | 'code'>('play');
+  const [activeTab, setActiveTab] = useState<'play' | 'map' | 'sprite' | 'palette' | 'music' | 'sound' | 'compiler' | 'exe' | 'code'>('play');
   const [crtEffect, setCrtEffect] = useState(true);
 
   // Switch game preset template
@@ -104,6 +105,13 @@ export default function App() {
 
           {activeTab === 'sound' && (
             <SoundBlasterPanel
+              project={project}
+              onUpdateProject={setProject}
+            />
+          )}
+
+          {activeTab === 'compiler' && (
+            <ResourceCompiler
               project={project}
               onUpdateProject={setProject}
             />
