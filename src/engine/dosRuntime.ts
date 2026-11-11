@@ -1,4 +1,4 @@
-import { GameProject, GameEntity, GameMap } from '../types/dos';
+import { GameProject, GameEntity, GameMap, EventTriggerType } from '../types/dos';
 import { soundBlaster } from './soundBlaster';
 
 export interface RuntimePlayerState {
@@ -65,13 +65,16 @@ export class DosRuntime {
   private initPlayer(): RuntimePlayerState {
     const map = this.project.maps[this.project.activeMapIndex] || this.project.maps[0];
     const playerEnt = map.entities.find((e) => e.type === 'player');
+    const playerSprite = this.project.sprites.find((s) => s.type === 'player') || this.project.sprites[0];
+    const hb = playerSprite?.hitbox;
+
     return {
       x: playerEnt ? playerEnt.x : 32,
       y: playerEnt ? playerEnt.y : 100,
       vx: 0,
       vy: 0,
-      width: 14,
-      height: 16,
+      width: hb ? hb.width : 14,
+      height: hb ? hb.height : 16,
       isGrounded: false,
       facing: 'right',
       health: this.project.playerSettings.maxHealth,
@@ -80,6 +83,44 @@ export class DosRuntime {
       invulnerableTime: 0,
       ammo: 99,
     };
+  }
+
+  public getSpriteHitbox(spriteId: string): { x: number; y: number; width: number; height: number; solid: boolean } {
+    const sprite = this.project.sprites.find((s) => s.id === spriteId);
+    if (sprite?.hitbox) {
+      return sprite.hitbox;
+    }
+    return { x: 0, y: 0, width: sprite?.width || 16, height: sprite?.height || 16, solid: true };
+  }
+
+  public checkOverlap(
+    x1: number, y1: number, w1: number, h1: number,
+    x2: number, y2: number, w2: number, h2: number
+  ): boolean {
+    return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2;
+  }
+
+  public triggerEvent(trigger: EventTriggerType, context?: { targetSpriteId?: string }) {
+    if (!this.project.events) return;
+    for (const evt of this.project.events) {
+      if (!evt.enabled || evt.trigger !== trigger) continue;
+      if (evt.targetSpriteId && evt.targetSpriteId !== '*' && context?.targetSpriteId && evt.targetSpriteId !== context.targetSpriteId) {
+        continue;
+      }
+
+      if (evt.action === 'play_sound') {
+        const sfx = (evt.actionParam || 'sb_coin').replace('sb_', '');
+        soundBlaster.playDspPcm(sfx as 'jump' | 'coin' | 'explosion' | 'laser' | 'hit' | 'win');
+      } else if (evt.action === 'add_score') {
+        this.player.score += parseInt(evt.actionParam || '100', 10);
+      } else if (evt.action === 'damage_player') {
+        this.player.health = Math.max(0, this.player.health - 1);
+      } else if (evt.action === 'heal_player') {
+        this.player.health = Math.min(this.player.maxHealth, this.player.health + 1);
+      } else if (evt.action === 'restart_level') {
+        this.reset(false);
+      }
+    }
   }
 
   private initStars() {
@@ -247,6 +288,7 @@ export class DosRuntime {
         this.player.vy = -settings.jumpForce;
         this.player.isGrounded = false;
         soundBlaster.playDspPcm('jump');
+        this.triggerEvent('on_jump');
       }
 
       // Gravity
@@ -337,14 +379,24 @@ export class DosRuntime {
           }
         }
 
-        // Check collision with player
-        if (Math.abs(this.player.x - e.x) < 12 && Math.abs(this.player.y - e.y) < 14) {
+        // Check collision with player using custom sprite hitboxes
+        const eHb = this.getSpriteHitbox(e.spriteId);
+        const playerSprite = this.project.sprites.find((s) => s.type === 'player');
+        const pHb = playerSprite ? this.getSpriteHitbox(playerSprite.id) : { x: 0, y: 0, width: 14, height: 16, solid: true };
+
+        const isCollidingWithPlayer = this.checkOverlap(
+          this.player.x + pHb.x, this.player.y + pHb.y, pHb.width, pHb.height,
+          e.x + eHb.x, e.y + eHb.y, eHb.width, eHb.height
+        );
+
+        if (isCollidingWithPlayer) {
           if (this.player.invulnerableTime <= 0) {
             // Did player stomp the enemy from above? (Platformer)
             if (this.project.genre === 'platformer' && this.player.vy > 0 && this.player.y < e.y) {
               soundBlaster.playDspPcm('hit');
               this.player.vy = -4.5;
               this.player.score += e.points;
+              this.triggerEvent('on_defeat_enemy', { targetSpriteId: e.spriteId });
               this.entities.splice(i, 1);
               continue;
             } else {
@@ -352,6 +404,7 @@ export class DosRuntime {
               soundBlaster.playDspPcm('hit');
               this.player.health--;
               this.player.invulnerableTime = 40;
+              this.triggerEvent('on_player_hit');
               if (this.player.health <= 0) {
                 this.gameState = 'gameover';
                 soundBlaster.playDspPcm('explosion');
@@ -365,9 +418,17 @@ export class DosRuntime {
 
       // Coin / Gem Pickup
       if (e.type === 'coin') {
-        if (Math.abs(this.player.x - e.x) < 14 && Math.abs(this.player.y - e.y) < 14) {
+        const itemHb = this.getSpriteHitbox(e.spriteId);
+        const playerSprite = this.project.sprites.find((s) => s.type === 'player');
+        const pHb = playerSprite ? this.getSpriteHitbox(playerSprite.id) : { x: 0, y: 0, width: 14, height: 16, solid: true };
+
+        if (this.checkOverlap(
+          this.player.x + pHb.x, this.player.y + pHb.y, pHb.width, pHb.height,
+          e.x + itemHb.x, e.y + itemHb.y, itemHb.width, itemHb.height
+        )) {
           soundBlaster.playDspPcm('coin');
           this.player.score += e.points;
+          this.triggerEvent('on_collect_item', { targetSpriteId: e.spriteId });
           this.entities.splice(i, 1);
           continue;
         }
@@ -375,10 +436,18 @@ export class DosRuntime {
 
       // Goal / Exit Door
       if (e.type === 'goal') {
-        if (Math.abs(this.player.x - e.x) < 16 && Math.abs(this.player.y - e.y) < 16) {
+        const doorHb = this.getSpriteHitbox(e.spriteId);
+        const playerSprite = this.project.sprites.find((s) => s.type === 'player');
+        const pHb = playerSprite ? this.getSpriteHitbox(playerSprite.id) : { x: 0, y: 0, width: 14, height: 16, solid: true };
+
+        if (this.checkOverlap(
+          this.player.x + pHb.x, this.player.y + pHb.y, pHb.width, pHb.height,
+          e.x + doorHb.x, e.y + doorHb.y, doorHb.width, doorHb.height
+        )) {
           soundBlaster.playDspPcm('win');
           this.player.score += e.points;
           this.gameState = 'victory';
+          this.triggerEvent('on_level_clear');
           soundBlaster.stopBgm();
           if (this.onStateChange) this.onStateChange();
         }

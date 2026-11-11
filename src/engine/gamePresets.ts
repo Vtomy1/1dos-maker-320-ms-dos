@@ -40,6 +40,7 @@ const KEEN_PLAYER_SPRITE: SpriteAsset = {
   type: 'player',
   width: 16,
   height: 16,
+  hitbox: { x: 2, y: 1, width: 12, height: 15, solid: true },
   fps: 6,
   frames: [
     {
@@ -99,6 +100,7 @@ const KEEN_ENEMY_SLUG: SpriteAsset = {
   type: 'enemy',
   width: 16,
   height: 16,
+  hitbox: { x: 1, y: 4, width: 14, height: 11, solid: true },
   fps: 4,
   frames: [
     {
@@ -158,6 +160,7 @@ const KEEN_GEM_SPRITE: SpriteAsset = {
   type: 'item',
   width: 16,
   height: 16,
+  hitbox: { x: 3, y: 2, width: 10, height: 12, solid: false },
   fps: 3,
   frames: [
     {
@@ -193,6 +196,7 @@ const KEEN_DOOR_SPRITE: SpriteAsset = {
   type: 'item',
   width: 16,
   height: 16,
+  hitbox: { x: 0, y: 0, width: 16, height: 16, solid: false },
   fps: 1,
   frames: [
     {
@@ -492,6 +496,63 @@ export function createKeenProject(): GameProject {
       bgmId: 'keen',
     },
     customMelody: JSON.parse(JSON.stringify(DEFAULT_CUSTOM_MELODY)),
+    events: [
+      {
+        id: 'evt_jump',
+        name: 'Player Jump Sound',
+        enabled: true,
+        trigger: 'on_jump',
+        action: 'play_sound',
+        actionParam: 'sb_jump',
+      },
+      {
+        id: 'evt_gem',
+        name: 'Gem Collect Bonus',
+        enabled: true,
+        trigger: 'on_collect_item',
+        targetSpriteId: 'spr_gem',
+        action: 'add_score',
+        actionParam: '250',
+      },
+      {
+        id: 'evt_slug',
+        name: 'Defeat Slug Blast',
+        enabled: true,
+        trigger: 'on_defeat_enemy',
+        targetSpriteId: 'spr_slug',
+        action: 'play_sound',
+        actionParam: 'sb_explosion',
+      },
+      {
+        id: 'evt_door',
+        name: 'Air Lock Level Win',
+        enabled: true,
+        trigger: 'on_level_clear',
+        action: 'play_sound',
+        actionParam: 'sb_powerup',
+      },
+    ],
+    notes: `# COMMANDER BILLY 320 - DESIGN SPECIFICATION
+
+## System Requirements
+- IBM PC/AT 386SX or higher (16 MHz+)
+- 640 KB Conventional RAM
+- VGA Graphics Card (Mode 13h, 320x200 256 colors)
+- Creative Sound Blaster 16 (Port 220h, IRQ 7, DMA 1)
+
+## Gameplay Mechanics
+- **Player Movement**: Arrow keys to walk left/right.
+- **Pogo Jumping**: Press Spacebar to bounce onto higher platforms.
+- **Ray Gun**: Press Z or Left Ctrl to fire downward/forward plasma bolts.
+- **Enemy Behaviors**: Vorticon slugs crawl along platforms; stomp them from above or zap with ray gun.
+- **Victory Condition**: Collect the VGA crystal gems and enter the Air Lock exit door.
+
+## Development Log
+- *Build 1.0*: Mode 13h VGA rendering established.
+- *Build 1.1*: Sound Blaster 16 DSP PCM & OPL2 FM synth audio added.
+- *Build 1.2*: Custom Hitbox Boundary Editor enabled for pixel-precise collision detection.
+- *Build 1.3*: Trigger-Action Event Scripting integrated.
+`,
     palette: generateDefaultVgaPalette(),
     sprites: [KEEN_PLAYER_SPRITE, KEEN_ENEMY_SLUG, KEEN_GEM_SPRITE, KEEN_DOOR_SPRITE],
     tiles: DEFAULT_TILES,

@@ -7,10 +7,15 @@ import React, { useState } from 'react';
 import { GameProject } from './types/dos';
 import { createKeenProject, createDungeonProject, createSpaceProject } from './engine/gamePresets';
 import { buildDosDistributionZip } from './engine/mzHeader';
-import { DosHeader } from './components/DosHeader';
+import { DosHeader, DosTab } from './components/DosHeader';
 import { DosPlayer } from './components/DosPlayer';
 import { MapEditor } from './components/MapEditor';
 import { SpriteEditor } from './components/SpriteEditor';
+import { CollisionEditor } from './components/CollisionEditor';
+import { EventScriptEditor } from './components/EventScriptEditor';
+import { DosBoxEmulator } from './components/DosBoxEmulator';
+import { ProjectSummary } from './components/ProjectSummary';
+import { ProjectNotes } from './components/ProjectNotes';
 import { SoundBlasterPanel } from './components/SoundBlasterPanel';
 import { ExeHeaderInspector } from './components/ExeHeaderInspector';
 import { PaletteEditor } from './components/PaletteEditor';
@@ -19,7 +24,7 @@ import { ResourceCompiler } from './components/ResourceCompiler';
 
 export default function App() {
   const [project, setProject] = useState<GameProject>(() => createKeenProject());
-  const [activeTab, setActiveTab] = useState<'play' | 'map' | 'sprite' | 'palette' | 'music' | 'sound' | 'compiler' | 'exe' | 'code'>('play');
+  const [activeTab, setActiveTab] = useState<DosTab>('play');
   const [crtEffect, setCrtEffect] = useState(true);
 
   // Switch game preset template
@@ -89,6 +94,20 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'collision' && (
+            <CollisionEditor
+              project={project}
+              onUpdateProject={setProject}
+            />
+          )}
+
+          {activeTab === 'events' && (
+            <EventScriptEditor
+              project={project}
+              onUpdateProject={setProject}
+            />
+          )}
+
           {activeTab === 'palette' && (
             <PaletteEditor
               project={project}
@@ -110,8 +129,28 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'dosbox' && (
+            <DosBoxEmulator
+              project={project}
+              crtEffect={crtEffect}
+            />
+          )}
+
           {activeTab === 'compiler' && (
             <ResourceCompiler
+              project={project}
+              onUpdateProject={setProject}
+            />
+          )}
+
+          {activeTab === 'summary' && (
+            <ProjectSummary
+              project={project}
+            />
+          )}
+
+          {activeTab === 'notes' && (
+            <ProjectNotes
               project={project}
               onUpdateProject={setProject}
             />

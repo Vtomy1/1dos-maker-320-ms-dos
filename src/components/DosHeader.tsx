@@ -1,12 +1,44 @@
 import React from 'react';
 import { GameProject } from '../types/dos';
-import { Volume2, VolumeX, Play, Edit3, Monitor, Download, Music, Cpu, Sparkles, Palette, Boxes } from 'lucide-react';
+import {
+  Volume2,
+  VolumeX,
+  Play,
+  Edit3,
+  Monitor,
+  Download,
+  Music,
+  Cpu,
+  Sparkles,
+  Palette,
+  Boxes,
+  Box,
+  Zap,
+  Terminal,
+  BarChart2,
+  FileText,
+} from 'lucide-react';
 import { soundBlaster } from '../engine/soundBlaster';
+
+export type DosTab =
+  | 'play'
+  | 'map'
+  | 'sprite'
+  | 'collision'
+  | 'events'
+  | 'palette'
+  | 'music'
+  | 'sound'
+  | 'dosbox'
+  | 'compiler'
+  | 'summary'
+  | 'notes'
+  | 'exe';
 
 interface DosHeaderProps {
   project: GameProject;
-  activeTab: 'play' | 'map' | 'sprite' | 'palette' | 'music' | 'sound' | 'compiler' | 'exe' | 'code';
-  setActiveTab: (tab: 'play' | 'map' | 'sprite' | 'palette' | 'music' | 'sound' | 'compiler' | 'exe' | 'code') => void;
+  activeTab: DosTab;
+  setActiveTab: (tab: DosTab) => void;
   crtEffect: boolean;
   setCrtEffect: (val: boolean) => void;
   onSelectTemplate: (template: 'keen' | 'dungeon' | 'space') => void;
@@ -39,7 +71,7 @@ export const DosHeader: React.FC<DosHeaderProps> = ({
             <span className="bg-[#aa0000] px-1.5 py-0.5 text-white font-bold">DOS</span>
             <span>MAKER 320</span>
           </div>
-          <span className="text-[#aaaaaa] font-mono">v1.3 [VGA 320x200 Mode 13h]</span>
+          <span className="text-[#aaaaaa] font-mono">v1.4 [VGA 320x200 Mode 13h]</span>
           <span className="hidden md:inline-block bg-[#000000] text-[#55ff55] px-2 py-0.5 font-mono border border-[#555555]">
             BLASTER=A{project.sbConfig.basePort.replace('h','')} I{project.sbConfig.irq} D{project.sbConfig.dma8}
           </span>
@@ -84,101 +116,161 @@ export const DosHeader: React.FC<DosHeaderProps> = ({
       {/* Main Studio Toolbar */}
       <div className="flex flex-wrap items-center justify-between px-3 py-1.5 gap-2 bg-[#0000aa]">
         {/* Navigation Tabs (Turbo C style) */}
-        <div className="flex items-center space-x-1">
+        <div className="flex flex-wrap items-center gap-1">
           <button
             onClick={() => setActiveTab('play')}
-            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
               activeTab === 'play'
                 ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
             <Play className="w-3.5 h-3.5 fill-current text-green-700" />
-            <span>F5 PLAY [320x200]</span>
+            <span>F5 PLAY</span>
           </button>
 
           <button
             onClick={() => setActiveTab('map')}
-            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
               activeTab === 'map'
                 ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
             <Edit3 className="w-3.5 h-3.5" />
-            <span>MAP EDITOR</span>
+            <span>MAP</span>
           </button>
 
           <button
             onClick={() => setActiveTab('sprite')}
-            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
               activeTab === 'sprite'
                 ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>VGA SPRITES</span>
+            <span>SPRITES</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('collision')}
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
+              activeTab === 'collision'
+                ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
+                : 'text-[#ffffff] hover:bg-[#000088]'
+            }`}
+          >
+            <Box className="w-3.5 h-3.5 text-yellow-300" />
+            <span>HITBOXES</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('events')}
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
+              activeTab === 'events'
+                ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
+                : 'text-[#ffffff] hover:bg-[#000088]'
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5 text-green-300" />
+            <span>EVENTS</span>
           </button>
 
           <button
             onClick={() => setActiveTab('palette')}
-            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
               activeTab === 'palette'
                 ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
             <Palette className="w-3.5 h-3.5 text-yellow-300" />
-            <span>PALETTE (256c)</span>
+            <span>PALETTE</span>
           </button>
 
           <button
             onClick={() => setActiveTab('music')}
-            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
               activeTab === 'music'
                 ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
             <Music className="w-3.5 h-3.5 text-cyan-300" />
-            <span>MUSIC SEQUENCER</span>
+            <span>SEQUENCER</span>
           </button>
 
           <button
             onClick={() => setActiveTab('sound')}
-            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
               activeTab === 'sound'
                 ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
             <Volume2 className="w-3.5 h-3.5 text-yellow-300" />
-            <span>SOUND BLASTER 16</span>
+            <span>SB16</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('dosbox')}
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
+              activeTab === 'dosbox'
+                ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
+                : 'text-[#ffffff] hover:bg-[#000088]'
+            }`}
+          >
+            <Terminal className="w-3.5 h-3.5 text-green-400" />
+            <span>DOSBOX</span>
           </button>
 
           <button
             onClick={() => setActiveTab('compiler')}
-            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
               activeTab === 'compiler'
                 ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
             <Boxes className="w-3.5 h-3.5 text-yellow-300" />
-            <span>RESOURCE COMPILER</span>
+            <span>COMPILER</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('summary')}
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
+              activeTab === 'summary'
+                ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
+                : 'text-[#ffffff] hover:bg-[#000088]'
+            }`}
+          >
+            <BarChart2 className="w-3.5 h-3.5 text-cyan-300" />
+            <span>SUMMARY</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('notes')}
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
+              activeTab === 'notes'
+                ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
+                : 'text-[#ffffff] hover:bg-[#000088]'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5 text-yellow-300" />
+            <span>NOTES</span>
           </button>
 
           <button
             onClick={() => setActiveTab('exe')}
-            className={`flex items-center space-x-1 px-3 py-1 font-mono transition-all ${
+            className={`flex items-center space-x-1 px-2.5 py-1 font-mono transition-all ${
               activeTab === 'exe'
                 ? 'bg-[#aaaaaa] text-[#000000] shadow-[inset_1px_1px_0px_#ffffff,inset_-1px_-1px_0px_#000000] font-bold'
                 : 'text-[#ffffff] hover:bg-[#000088]'
             }`}
           >
             <Cpu className="w-3.5 h-3.5 text-cyan-300" />
-            <span>MZ .EXE HEADER</span>
+            <span>MZ .EXE</span>
           </button>
         </div>
 

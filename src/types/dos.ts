@@ -19,12 +19,21 @@ export interface SpriteFrame {
   pixels: number[]; // Array of color palette indices (0-255), 0 usually transparent
 }
 
+export interface CollisionBox {
+  x: number; // offset in pixels from sprite left (0 to width)
+  y: number; // offset in pixels from sprite top (0 to height)
+  width: number;
+  height: number;
+  solid: boolean;
+}
+
 export interface SpriteAsset {
   id: string;
   name: string;
   type: 'player' | 'enemy' | 'item' | 'bullet' | 'boss';
   width: number;
   height: number;
+  hitbox?: CollisionBox;
   frames: SpriteFrame[];
   fps: number;
 }
@@ -133,6 +142,34 @@ export interface CustomMelodyTrack {
   };
 }
 
+export type EventTriggerType =
+  | 'on_collide_entity'
+  | 'on_jump'
+  | 'on_land'
+  | 'on_shoot'
+  | 'on_collect_item'
+  | 'on_defeat_enemy'
+  | 'on_player_hit'
+  | 'on_level_clear';
+
+export type EventActionType =
+  | 'play_sound'
+  | 'add_score'
+  | 'damage_player'
+  | 'heal_player'
+  | 'teleport_player'
+  | 'restart_level';
+
+export interface GameEventRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  trigger: EventTriggerType;
+  targetSpriteId?: string; // e.g. 'spr_slug' or '*'
+  action: EventActionType;
+  actionParam?: string; // sound ID or score value
+}
+
 export interface GameProject {
   title: string;
   author: string;
@@ -156,6 +193,8 @@ export interface GameProject {
     bgmId: string;
   };
   customMelody?: CustomMelodyTrack;
+  events?: GameEventRule[];
+  notes?: string;
   palette: VGAColor[];
   sprites: SpriteAsset[];
   tiles: TileAsset[];
